@@ -22,6 +22,10 @@ from homeassistant.const import (
     UnitOfElectricPotential,
     UnitOfLength,
     UnitOfTemperature,
+    # Should add a sensor that has one or both of these types.
+    UnitOfVolume, #Total CUBIC_FEET used in device lifetime.
+    UnitOfVolumeFlowRate, #CUBIC_FEET_PER_MINUTE I think it should be estimated over an hour and added to UnitOfVolume at refresh.
+
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -82,6 +86,18 @@ SENSOR_DESCRIPTIONS = {
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
+    "total_used": SensorEntityDescription(
+        key=total_used,
+        device_class=SensorDeviceClass.VOLUME,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_FEET,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+    ),
+    "use_rate":  SensorEntityDescription(
+        key=use_rate,
+        device_class=SensorDeviceClass.VOLUME_FLOW_RATE,
+        native_unit_of_measurement=UnitOfVolumeFlowRate.CUBIC_FEET_PER_MINUTE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 }
 
 
@@ -135,6 +151,8 @@ class MopekaBluetoothSensorEntity(
     SensorEntity,
 ):
     """Representation of a Mopeka sensor."""
+    
+    self.tank_size: int | None = None
 
     @property
     def native_value(self) -> int | float | None:

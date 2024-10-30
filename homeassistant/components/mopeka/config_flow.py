@@ -17,7 +17,7 @@ from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import callback
 
-from .const import CONF_MEDIUM_TYPE, DEFAULT_MEDIUM_TYPE, DOMAIN, MediumType
+from .const import CONF_MEDIUM_TYPE, DEFAULT_MEDIUM_TYPE, DOMAIN, MediumType, CONF_TANK_SIZE, DEFAULT_TANK_SIZE, TankSize
 
 
 def format_medium_type(medium_type: Enum) -> str:
@@ -29,6 +29,13 @@ MEDIUM_TYPES_BY_NAME = {
     medium.value: format_medium_type(medium) for medium in MediumType
 }
 
+def format_tank_size(tank_size: Enum) -> str:
+    """Format the tank size for human reading."""
+    return tank_size.name.replace("_", " ").title()
+
+TANK_SIZES_BY_NAME = {
+    tank.value: format_tank_size(tank_size) for tank in TankSize
+}
 
 def async_generate_schema(medium_type: str | None = None) -> vol.Schema:
     """Return the base schema with formatted medium types."""
@@ -76,7 +83,7 @@ class MopekaConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_bluetooth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Confirm discovery and select medium type."""
+        """Confirm discovery and select medium type & tank size."""
         assert self._discovered_device is not None
         device = self._discovered_device
         assert self._discovery_info is not None
@@ -86,7 +93,7 @@ class MopekaConfigFlow(ConfigFlow, domain=DOMAIN):
             self._discovered_devices[discovery_info.address] = title
             return self.async_create_entry(
                 title=self._discovered_devices[discovery_info.address],
-                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE]},
+                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZES: user_input[CONF_TANK_SIZE]},
             )
 
         self._set_confirm_only()
@@ -101,14 +108,14 @@ class MopekaConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the user step to pick discovered device and select medium type."""
+        """Handle the user step to pick discovered device and select medium type & tank size."""
         if user_input is not None:
             address = user_input[CONF_ADDRESS]
             await self.async_set_unique_id(address, raise_on_progress=False)
             self._abort_if_unique_id_configured()
             return self.async_create_entry(
                 title=self._discovered_devices[address],
-                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE]},
+                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZES: user_input[CONF_TANK_SIZE]},
             )
 
         current_addresses = self._async_current_ids()
