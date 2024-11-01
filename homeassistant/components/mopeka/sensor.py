@@ -22,9 +22,8 @@ from homeassistant.const import (
     UnitOfElectricPotential,
     UnitOfLength,
     UnitOfTemperature,
-    # Should add a sensor that has one or both of these types.
-    UnitOfVolume, #Total CUBIC_FEET used in device lifetime.
-    UnitOfVolumeFlowRate, #CUBIC_FEET_PER_MINUTE I think it should be estimated over an hour and added to UnitOfVolume at refresh.
+    UnitOfVolume,
+    UnitOfVolumeFlowRate,
 
 )
 from homeassistant.core import HomeAssistant
