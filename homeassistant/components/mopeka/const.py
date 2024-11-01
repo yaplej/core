@@ -11,4 +11,6 @@ CONF_MEDIUM_TYPE: Final = "medium_type"
 
 DEFAULT_MEDIUM_TYPE = MediumType.PROPANE.value
 
+CONF_TANK_SIZE: Final = "tank_size"
+
 DEFAULT_TANK_SIZE = TankSize.HORIZONTAL_250GAL.value

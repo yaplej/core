@@ -150,8 +150,6 @@ class MopekaBluetoothSensorEntity(
     SensorEntity,
 ):
     """Representation of a Mopeka sensor."""
-    
-    self.tank_size: int | None = None
 
     @property
     def native_value(self) -> int | float | None:

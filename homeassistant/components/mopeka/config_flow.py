@@ -37,13 +37,16 @@ TANK_SIZES_BY_NAME = {
     tank.value: format_tank_size(tank_size) for tank in TankSize
 }
 
-def async_generate_schema(medium_type: str | None = None) -> vol.Schema:
+def async_generate_schema(medium_type: str | None = None, tank_size: str | None = None) -> vol.Schema:
     """Return the base schema with formatted medium types."""
     return vol.Schema(
         {
             vol.Required(
                 CONF_MEDIUM_TYPE, default=medium_type or DEFAULT_MEDIUM_TYPE
-            ): vol.In(MEDIUM_TYPES_BY_NAME)
+            ): vol.In(MEDIUM_TYPES_BY_NAME),
+            vol.Required(
+                CONF_TANK_SIZE, default=tank_size or DEFAULT_TANK_SIZE
+            ): vol.In(TANK_SIZES_BY_NAME)
         }
     )
 
@@ -93,7 +96,7 @@ class MopekaConfigFlow(ConfigFlow, domain=DOMAIN):
             self._discovered_devices[discovery_info.address] = title
             return self.async_create_entry(
                 title=self._discovered_devices[discovery_info.address],
-                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZES: user_input[CONF_TANK_SIZE]},
+                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZE: user_input[CONF_TANK_SIZE]},
             )
 
         self._set_confirm_only()
@@ -115,7 +118,7 @@ class MopekaConfigFlow(ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
             return self.async_create_entry(
                 title=self._discovered_devices[address],
-                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZES: user_input[CONF_TANK_SIZE]},
+                data={CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],CONF_TANK_SIZE: user_input[CONF_TANK_SIZE]},
             )
 
         current_addresses = self._async_current_ids()
@@ -158,6 +161,7 @@ class MopekaOptionsFlow(config_entries.OptionsFlow):
             new_data = {
                 **self.config_entry.data,
                 CONF_MEDIUM_TYPE: user_input[CONF_MEDIUM_TYPE],
+                CONF_TANK_SIZE: user_input[CONF_TANK_SIZE],
             }
             self.hass.config_entries.async_update_entry(
                 self.config_entry, data=new_data
@@ -168,6 +172,7 @@ class MopekaOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=async_generate_schema(
-                self.config_entry.data.get(CONF_MEDIUM_TYPE)
+                self.config_entry.data.get(CONF_MEDIUM_TYPE),
+                self.config_entry.data.get(CONF_TANK_SIZE)
             ),
         )
