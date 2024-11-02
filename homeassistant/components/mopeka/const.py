@@ -3,6 +3,7 @@
 from typing import Final
 
 from mopeka_iot_ble import MediumType
+
 from .tanks import TankSize
 
 DOMAIN = "mopeka"
@@ -13,4 +14,4 @@ DEFAULT_MEDIUM_TYPE = MediumType.PROPANE.value
 
 CONF_TANK_SIZE: Final = "tank_size"
 
-DEFAULT_TANK_SIZE = TankSize.HORIZONTAL_250GAL.value
+DEFAULT_TANK_SIZE = TankSize.HORIZONTAL_250_GAL.value
