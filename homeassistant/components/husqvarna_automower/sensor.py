@@ -35,6 +35,8 @@ from .entity import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 ATTR_WORK_AREA_ID_ASSIGNMENT = "work_area_id_assignment"
 
@@ -349,6 +351,7 @@ MOWER_SENSOR_TYPES: tuple[AutomowerSensorEntityDescription, ...] = (
         key="number_of_collisions",
         translation_key="number_of_collisions",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         state_class=SensorStateClass.TOTAL,
         exists_fn=lambda data: data.statistics.number_of_collisions is not None,
         value_fn=attrgetter("statistics.number_of_collisions"),
@@ -450,6 +453,37 @@ async def async_setup_entry(
             if description.exists_fn(coordinator.data[mower_id])
         )
     async_add_entities(entities)
+
+    def _async_add_new_work_areas(mower_id: str, work_area_ids: set[int]) -> None:
+        mower_data = coordinator.data[mower_id]
+        if mower_data.work_areas is None:
+            return
+
+        async_add_entities(
+            WorkAreaSensorEntity(mower_id, coordinator, description, work_area_id)
+            for description in WORK_AREA_SENSOR_TYPES
+            for work_area_id in work_area_ids
+            if work_area_id in mower_data.work_areas
+            and description.exists_fn(mower_data.work_areas[work_area_id])
+        )
+
+    def _async_add_new_devices(mower_ids: set[str]) -> None:
+        async_add_entities(
+            AutomowerSensorEntity(mower_id, coordinator, description)
+            for mower_id in mower_ids
+            for description in MOWER_SENSOR_TYPES
+            if description.exists_fn(coordinator.data[mower_id])
+        )
+        for mower_id in mower_ids:
+            mower_data = coordinator.data[mower_id]
+            if mower_data.capabilities.work_areas and mower_data.work_areas is not None:
+                _async_add_new_work_areas(
+                    mower_id,
+                    set(mower_data.work_areas.keys()),
+                )
+
+    coordinator.new_devices_callbacks.append(_async_add_new_devices)
+    coordinator.new_areas_callbacks.append(_async_add_new_work_areas)
 
 
 class AutomowerSensorEntity(AutomowerBaseEntity, SensorEntity):
